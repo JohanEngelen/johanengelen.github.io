@@ -7,13 +7,17 @@
     <div class="footer-col-wrapper">
       <div class="footer-col footer-col-1">
         <ul class="contact-list">
-          <li>{{ site.title }}</li>
-          <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+          <li>
+            This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">C. C. Attribution 4.0 International License</a>.
+            The code fragments are licensed under an <a rel="license" href="https://opensource.org/licenses/MIT">MIT license</a>.
+          </li>
         </ul>
       </div>
 
       <div class="footer-col footer-col-2">
         <ul class="social-media-list">
+          <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+
           {% if site.github_username %}
           <li>
             {% include icon-github.html username=site.github_username %}
@@ -24,6 +28,7 @@
           <li>
             {% include icon-twitter.html username=site.twitter_username %}
           </li>
+
           {% endif %}
         </ul>
       </div>

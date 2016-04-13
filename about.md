@@ -4,12 +4,13 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](http://jekyllrb.com/)
+My name is Johan Engelen :)
 
-You can find the source code for the Jekyll new theme at:
-{% include icon-github.html username="jglovier" %} /
-[jekyll-new](https://github.com/jglovier/jekyll-new)
 
-You can find the source code for Jekyll at
-{% include icon-github.html username="jekyll" %} /
-[jekyll](https://github.com/jekyll/jekyll)
+I have been one of the main contributors to [Inkscape](https://inkscape.org/) since 2006, and switched to [the LDC project](https://wiki.dlang.org/LDC) in 2015.
+
+[My Github account](https://github.com/JohanEngelen)
+
+[My profile on Google Scholar](https://scholar.google.com/citations?user=fX8rVrwAAAAJ)
+
+[My profile on LinkedIn](https://nl.linkedin.com/in/johan-engelen-bb711110)
