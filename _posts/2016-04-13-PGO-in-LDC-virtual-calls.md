@@ -14,7 +14,7 @@ _Edit (15 Apr 2016)_: The D code of LDC performs 7% faster (on the testcase) whe
 *[VCP]: Virtual Call Promotion
 
 # Profile-Guided Optimization (PGO)
-In this article I'll discuss the implementation of optimizations that the compiler can do when it is given details of a typical execution flow of your program. These details are the "profile" of your program: how many times is this function called, how often was a control-flow branch taken, how often is function `A` called by function `B`, what are likely values of variable `X`, how much memory is usually allocated for something, etc.
+In this article I'll discuss the implementation of optimizations that the compiler can do when it is given details of a typical execution flow of your program. These details are the "profile" of your program: how many times is this function called, how often was a control-flow branch taken, how often is function `A` called by function `B`, what are likely values of variable `X`, how much memory is usually allocated for something, etc.  
 A profile can be obtained through different means, but here I will only discuss _instrumented_ profiling. The compiler adds 'instrumentation' code in a first compilation pass. You then run your program with input that is representative of the use case for which you want to optimize the code, and upon exit the program outputs the profile data in a separate file. This profile data file is  used by the compiler in a second compilation pass to compile and optimize your program. You do not have to generate a new profile very often. Profile data can be reused when recompiling a program with small changes; LDC will detect changes in control flow and will ignore profile data accordingly.
 
 A simple build process using PGO looks like[^pgowiki]:
