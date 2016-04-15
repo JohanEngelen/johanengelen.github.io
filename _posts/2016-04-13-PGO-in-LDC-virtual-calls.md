@@ -6,8 +6,8 @@ categories: LDC
 
 Part 1 on profile-guided optimizations (PGO) in [LDC](https://wiki.dlang.org/LDC).
 An article about optimization of virtual (class) function calls using profile data by transforming indirect calls to direct calls, with a description of how this is implemented in LDC using [LLVM](http://llvm.org/).
-_Edit (15 Apr 2016)_: The D code of LDC performs 7% faster (on the testcase) when compiled with PGO.
-_Edit (15 Apr 2016)_: I added "function" to the title so my father no longer thinks this is about video phone calls.
+
+_Edit (15 Apr 2016)_: The D code of LDC performs 7% faster (on the testcase) when compiled with PGO. I added "function" to the title so my father no longer thinks this is about video phone calls.
 
 *[PGO]: Profile-Guided Optimization
 *[ICP]: Indirect Call Promotion
