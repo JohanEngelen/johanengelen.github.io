@@ -1,12 +1,13 @@
 ---
 layout: post
-title:  "PGO: Optimizing D's virtual calls"
+title:  "PGO: Optimizing D's virtual function calls"
 categories: LDC
 ---
 
 Part 1 on profile-guided optimizations (PGO) in [LDC](https://wiki.dlang.org/LDC).
 An article about optimization of virtual (class) function calls using profile data by transforming indirect calls to direct calls, with a description of how this is implemented in LDC using [LLVM](http://llvm.org/).
-
+_Edit (15 Apr 2016)_: The D code of LDC performs 7% faster (on the testcase) when compiled with PGO.
+_Edit (15 Apr 2016)_: I added "function" to the title so my father no longer thinks this is about video phone calls.
 
 *[PGO]: Profile-Guided Optimization
 *[ICP]: Indirect Call Promotion
@@ -317,6 +318,20 @@ The binaries with PGO are ~0.5% larger than without PGO.
 
 Please don't use these measurement data to build an argument in any discussion. I know they are terribly inaccurate and I have put them here only for illustration. I apologize for not having anything better at the moment.
 
+***Edit (15 Apr 2016)***:
+Execution in LDC is a mix of three parts: the D front-end (parsing and semantic analysis), the C++ "middle-end", and the LLVM back-end (C++). In the measurements above, I measured the total execution time to show how much performance gain there is for LDC and because the middle-end also calls into the front-end code. However, since then I've found that a large fraction of the time is spent in C++ code and is thus not changed at all with PGO. Perhaps it is more fair to the PGO work to look at results from D code only. Here are measurements of the same binaries compiling the same code but with the extra option `-o-`, which stops compilation after semantic analysis:
+
+|-----------------+-----------------------------------------------|
+| LDC version     | `time ldc2 -o- ...`    |
+|:--------------|:----------------------------------------------|
+| normal          |`22.63s user 3.56s system 97% cpu 26.888 total` |
+|----
+| w/ PGO          |`20.78s user 3.57s system 97% cpu 25.081 total` |
+|=====
+
+We see that less than half of the time is spent on parsing and semantic analysis. The difference in total execution time is about the same as for the full compilation to object files. But now we see that the D code became about 7% faster with PGO!
+
+
 # Final thoughts
 
 The [DDMD D source code](https://github.com/D-Programming-Language/dmd/tree/master/src) uses the keyword `final` a lot. `final` helps tremendously in devirtualizing calls: when used [on a class](https://dlang.org/spec/class.html#final) or [on a class method](https://dlang.org/spec/function.html#virtual-functions), it makes it illegal to derive from that class or override that function in a derived class. So it is easy for the compiler to deduce that it can devirtualize a call (and `final` in a base class means that that function will never be a virtual function).
@@ -333,6 +348,19 @@ It is fun to browse through the profile data to get a feel for indirect call sta
 |=====
 
 <br> After the removal of `final`, the compile times went up a little. PGO appears to compensate for the performance loss, with compile times just a little slower than with `final` (again, the error margin is larger than these differences...).
+
+***Edit (15 Apr 2016)***:
+See the edit above. Here measurements of just the parsing and semantic analysis (D code only), with `final` removed:
+
+|-----------------+-----------------------------------------------|
+| LDC version     | `time ldc2 ...`    |
+|:--------------|:----------------------------------------------|
+| removed `final` |`23.44s user 3.65s system 97% cpu 27.704 total` |
+|----
+| removed `final` w/ PGO  |`20.85s user 3.51s system 97% cpu 24.942 total` |
+|=====
+
+The results are the same as before, but more dramatic. The PGO build without `final` is as fast as the PGO build with `final`, PGO appears to be able to completely compensate for the loss of devirtualization with `final`. The performance improvement with PGO is 10%!
 
 # Try it yourself
 
