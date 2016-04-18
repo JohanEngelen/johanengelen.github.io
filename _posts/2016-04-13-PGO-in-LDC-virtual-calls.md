@@ -262,7 +262,8 @@ Finally, `%13` checks whether the return value was `null` (the `!`) and `!smembe
 Some fun implementation hurdles:
 
 * support VCP of virtual tables (classes) in other modules compiled without instrumentation;
-* an LLVM bug in processing profile data with unknown raw pointer values;
+* an LLVM bug in processing profile data with unknown raw pointer values  
+ (_18 Apr_: the bug was fixed very quickly by Xinliang David Li!);
 * correctly deal with the return values (oh wait, some functions return `void`);
 * some calls are normal, others are 'invokes' with exception handling;
 * what about interfaces?
