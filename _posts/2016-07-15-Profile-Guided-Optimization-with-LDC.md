@@ -4,7 +4,7 @@ title:  "Profile-Guided Optimization with LDC"
 categories: LDC
 ---
 
-[Two months ago]({% post_url 2016-04-13-PGO-in-LDC-virtual-calls %}), I measured a 7% performance gain of the compiler front-end D code using Profile-Guided Optimization (PGO) with LDC. Now, part of my PGO work was [merged into LDC master](https://github.com/ldc-developers/ldc/commit/94fe1a6dc8bd63ec5d0fb4b4e2c75eabb74f35a4) on Jun 20, 2016! This means it will be available in the next LDC release (version 1.1.0, needs LLVM 3.7 or newer). You can play with it with the [LDC 1.1.0-alpha1 release](https://github.com/ldc-developers/ldc/releases/tag/v1.1.0-alpha1).
+[Three months ago]({% post_url 2016-04-13-PGO-in-LDC-virtual-calls %}), I measured a 7% performance gain of the compiler front-end D code using Profile-Guided Optimization (PGO) with LDC. Now, part of my PGO work was [merged into LDC master](https://github.com/ldc-developers/ldc/commit/94fe1a6dc8bd63ec5d0fb4b4e2c75eabb74f35a4) on Jun 20, 2016! This means it will be available in the next LDC release (version 1.1.0, needs LLVM 3.7 or newer). You can play with it with the [LDC 1.1.0-alpha1 release](https://github.com/ldc-developers/ldc/releases/tag/v1.1.0-alpha1).
 Here I'll discuss how to use it, saving the implementation details for another article.
 
 Using PGO with LDC is similar to using [PGO with Clang](http://clang.llvm.org/docs/UsersManual.html#profiling-with-instrumentation), and much of this article also applies to Clang.
