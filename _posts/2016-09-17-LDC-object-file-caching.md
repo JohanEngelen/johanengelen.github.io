@@ -25,7 +25,7 @@ These are LDC's compile steps:
 1. Parse the input files -> modules;
 2. Do semantic analysis for all modules;
 3. For each module do:
-   a. Generate [LLVM IR](//llvm.org/docs/LangRef.html) (IR codegen);
+   a. Generate [LLVM IR](http://llvm.org/docs/LangRef.html) (IR codegen);
    b. Run LLVM optimization passes;
    c. Output object file (LLVM machine codegen);
 4. Optionally: link all output object files into an executable.
@@ -104,7 +104,7 @@ All you need to do to benefit from object file caching is pass the `-ir2obj-cach
 
 # What's the gain?
 
-The direct motivation for implementing object file caching was to improve the build times for [Weka.io](//www.weka.io). It's a large codebase, so building it takes a lot of time. Ahem, 3.5 minute. But faster is always better! The result with cache hits for all object files is..., 2.5 minute! Even though this is the maximum speed-up obtainable, that's a 30% reduction in build time! These time measurements are for development builds with `-g -O0`. If your project needs `-O3` during development, you can expect large build time reductions with caching enabled. Weka's codebase with `-g -O3 -release` goes from 5m50 to... 2m30; the optimization `-O3` is completely skipped for cache hits and the IR codegen time _reduction_ by `-release` is insignificant. The build time with maximum cache hits will be the same for `-g` and `-g -O3 -release -flag-of-the-awesome-optimization-over-9000`.
+The direct motivation for implementing object file caching was to improve the build times for [Weka.io](http://www.weka.io). It's a large codebase, so building it takes a lot of time. Ahem, 3.5 minute. But faster is always better! The result with cache hits for all object files is..., 2.5 minute! Even though this is the maximum speed-up obtainable, that's a 30% reduction in build time! These time measurements are for development builds with `-g -O0`. If your project needs `-O3` during development, you can expect large build time reductions with caching enabled. Weka's codebase with `-g -O3 -release` goes from 5m50 to... 2m30; the optimization `-O3` is completely skipped for cache hits and the IR codegen time _reduction_ by `-release` is insignificant. The build time with maximum cache hits will be the same for `-g` and `-g -O3 -release -flag-of-the-awesome-optimization-over-9000`.
 
 The only downside I see to using caching is that the hash calculation takes time and it cannot be skipped, not even when the cache is empty and there is no chance to get a cache hit. To store the object in the cache in step 3e, we must calculate the hash at some point. For a very large compiled module, say an object file of a few hundred MBs (Weka has a number of these), the hash calculation time is a few seconds. So 'cold' builds will be a few seconds slower.
 
