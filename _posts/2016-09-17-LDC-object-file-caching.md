@@ -123,6 +123,10 @@ For parallel builds, I recommend using `ldc-prune-cache` at the end of the build
 # Feedback
 
 Constructive feedback, positive and negative, is always appreciated. And needed: while writing this post, I re-read [my pruning D code](https://github.com/ldc-developers/ldc/blob/master/driver/ir2obj_cache_pruning.d) and discovered two bugs ([#1770](https://github.com/ldc-developers/ldc/pull/1770)).
-The best way to get in touch with me and the other LDC developers is either via the [digitalmars.D.ldc forum](https://forum.dlang.org/group/digitalmars.D.ldc) or our [Gitter chat](https://gitter.im/ldc-developers/main).
+The best way to get in touch with me and the other LDC developers is via the [digitalmars.D.ldc forum](https://forum.dlang.org/group/digitalmars.D.ldc) and our [Gitter chat](https://gitter.im/ldc-developers/main).
+
+Links to discussions:
+[Reddit](https://www.reddit.com/r/programming/comments/539wpv/ldc_speed_up_incremental_builds_of_d_programs/)
+[D forum thread](https://forum.dlang.org/post/wdhuftpqjlkllcwbvanq@forum.dlang.org)
 
 # Notes
