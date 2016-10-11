@@ -192,7 +192,7 @@ If your target is an ARM processor with [NEON SIMD tech](http://www.arm.com/prod
 
 The dot-product example above is a very simple function. For more complex algorithms, you can get better performance if you take the sizes of the CPU's caches into account; the characteristics of the instruction and data caches are both important for performance tuning.
 
-LDC 1.1.0 has [two special `__traits`](https://wiki.dlang.org/LDC-specific_language_changes#Traits) that give compile-time information about the compile target architecture: `__traits(targetHasFeature, "...")` and `__traits(targetCPU)`.
+LDC 1.1.0 has [two special `__traits`](https://wiki.dlang.org/LDC-specific_language_changes#Traits) that give compile-time information about the compile target architecture: `__traits(targetHasFeature, "...")` and `__traits(targetCPU)`. For example, `__traits(targetHasFeature, "avx2")` returns true or false depending on whether the compile target supports [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) instructions or not.
 
 Mir uses `__traits(targetHasFeature, "...")` to decide what vector types (say, a vector of 4 or 8 floats) to use in its algorithms, but I don't know the exact how-and-why (yet? Ilya fill us in on the details! `;-)`).
 
