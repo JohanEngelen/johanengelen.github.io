@@ -4,8 +4,8 @@ title:  "Increasing the performance of D math code"
 categories: LDC
 ---
 
-_An article about the new [`@fastmath`](https://wiki.dlang.org/LDC-specific_language_changes#.40.28ldc.attributes.fastmath.29) and [`__traits(target*)`](https://wiki.dlang.org/LDC-specific_language_changes#Traits) features in LDC 1.1.0. The `@fastmath` attribute relaxes floating point math constraints and is used by [Mir](https://github.com/libmir/mir) to [beat OpenBLAS and Eigen](http://blog.mir.dlang.io/glas/benchmark/openblas/2016/09/23/glas-gemm-benchmark.html)._
-_To avoid confusion: [LLVM](http://llvm.org/) is doing the interesting work, LDC just adds a few pieces that allow LLVM to work its magic._
+_An article about the new [`@fastmath`](https://wiki.dlang.org/LDC-specific_language_changes#.40.28ldc.attributes.fastmath.29) and [`__traits(target*)`](https://wiki.dlang.org/LDC-specific_language_changes#Traits) features in LDC 1.1.0. The `@fastmath` attribute relaxes floating point math constraints and is used by [Mir](https://github.com/libmir/mir) to [beat OpenBLAS and Eigen](http://blog.mir.dlang.io/glas/benchmark/openblas/2016/09/23/glas-gemm-benchmark.html)._  
+_To avoid confusion: [LLVM](http://llvm.org/) is doing the interesting work, LDC just adds a few pieces that allow LLVM to work its magic._  
 _I'm afraid it won't be a nice read if you are unfamiliar with some of peculiarities of the CPU's [floating point](http://www.cprogramming.com/tutorial/floating_point/understanding_floating_point_representation.html) math, [x86 assembly](https://en.wikipedia.org/wiki/X86_assembly_language#Syntax), or [SIMD](https://en.wikipedia.org/wiki/SIMD)._
 
 # Numeric age for D
