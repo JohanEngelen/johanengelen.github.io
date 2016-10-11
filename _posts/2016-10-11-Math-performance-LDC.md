@@ -199,3 +199,7 @@ Mir uses `__traits(targetHasFeature, "...")` to decide what vector types (say, a
 # Feedback
 
 Constructive feedback, positive and negative, is always appreciated. The best way to get in touch with me and the other LDC developers is via the [digitalmars.D.ldc forum](https://forum.dlang.org/group/digitalmars.D.ldc) and our [Gitter chat](https://gitter.im/ldc-developers/main).
+
+Links to discussions:  
+[Reddit](https://www.reddit.com/r/programming/comments/56yheb/increasing_the_performance_of_d_math_code/)  
+[D forum thread](https://forum.dlang.org/post/oegnxzcpfnrggdndceur@forum.dlang.org)
