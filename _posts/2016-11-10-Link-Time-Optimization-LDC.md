@@ -112,3 +112,7 @@ I'd like to thank Teresa Johnson very much for helping out with troubleshooting 
 # Feedback
 
 Constructive feedback, positive and negative, is always appreciated. The best way to get in touch with me and the other LDC developers is via the [digitalmars.D.ldc forum](https://forum.dlang.org/group/digitalmars.D.ldc) and our [Gitter chat](https://gitter.im/ldc-developers/main).
+
+Links to discussions:  
+[Reddit](https://www.reddit.com/r/programming/comments/5c8p58/link_time_optimization_cd_crosslanguage/)  
+[D forum thread](https://forum.dlang.org/post/edzoqcprdqtewqqaabge@forum.dlang.org)
