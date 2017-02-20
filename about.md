@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-Johan B. C. Engelen
+dr. ir. Johan B. C. Engelen
 
 Johan Engelen has been one of the main contributors to [Inkscape](https://inkscape.org/) since 2006, and also contributed to its geometry library [2Geom](http://lib2geom.sourceforge.net/). He has served on the Inkscape Board from late 2012 to early 2015.
 Since 2015, he switched from Inkscape development to contributing to [the LDC project](https://wiki.dlang.org/LDC), part of [the D language community](https://dlang.org/). He is doing freelance D compiler consulting for [Weka.io](http://www.weka.io/) since 2016.
