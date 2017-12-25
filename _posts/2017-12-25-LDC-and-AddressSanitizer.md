@@ -12,7 +12,7 @@ LDC does not yet support ASan on Windows._
 
 [Address Sanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer) (or ASan for short) is a fast memory access error detector. When it detects that a program tries to read/write from/to an invalid memory address, it aborts the program and outputs an error report with many details about the error. To use ASan you have to compile with ASan enabled (`-fsanitize=address`) and you have to link with the ASan runtime library (again `-fsanitize=address` when linking with LDC).
 
-ASan is developed for catching bugs in C++ codebases. Although D tries to be a more safe language, the safety measures still require developer effort and discipline. And so D code suffers from similar memory bugs that plague people in C++. ASan to the rescue! To peak your interest, at Cppcon 2017, Louis Brandy, Engineering Director at Facebook, notes that ["AdressSanitizer is probably the most important thing that's happened, at least in our tool set, in a long time."](https://youtu.be/lkgszkPnV8g?t=409) And ["one cannot speak highly enough of AddressSanitizer, and the amount of bugs that it finds in a codebase."](https://youtu.be/lkgszkPnV8g?t=2649)
+ASan is developed for catching bugs in C++ codebases. Although D is a much more memory-safe language, the safety measures do require some developer effort and discipline. The same type of memory bugs that happen in C++ can happen in D too. ASan to the rescue! To peak your interest, at Cppcon 2017, Louis Brandy, Engineering Director at Facebook, notes that ["AdressSanitizer is probably the most important thing that's happened, at least in our tool set, in a long time."](https://youtu.be/lkgszkPnV8g?t=409) And ["one cannot speak highly enough of AddressSanitizer, and the amount of bugs that it finds in a codebase."](https://youtu.be/lkgszkPnV8g?t=2649)
 
 ASan catches bad memory accesses at runtime by instrumenting[^instrum] memory accesses during compilation, where the instrumentation code checks the accessed address range against a table of accessible/inaccessible memory (stored in a "shadow" memory region). The instrumentation of code includes adding checks on every read/write from memory and adding calls to mark specific memory regions as valid ('unpoisoned') or invalid ('poisoned') for access. The instrumentation and runtime library add poisoned 'red zones' around valid memory regions (stack variables and heap), such that buffer over-/underflow can be detected. The ASan runtime library provides the memory marking/checking and error reporting functions, but also overrides `malloc` and `free` such that accesses to dynamically allocated memory regions can also be checked for validity. With this mechanism, ASan detects for example use-after-free bugs and heap buffer overflows.
 
@@ -24,7 +24,7 @@ Bugs involving GC allocated memory are not detected (yet!). I'll return to this 
 
 # A simple example
 
-An example of a bug easily caught with ASan:
+A contrived example of a bug easily caught with ASan:
 
 ```c++
 // File: asan_1.d
@@ -99,6 +99,18 @@ The program aborts because ASan has intercepted a bad memory access: a `stack-bu
 What's not working yet is showing the name of that variable: it should say `[32, 72) 'tenIntegers'`, but that's not working for D (yet! Perhaps a problem only on OSX).
 
 What follows is a view of the shadow memory around the accessed memory address indicated between `[` `]`. The value `f3` means that the accessed location is in the 'stack right redzone', i.e. the address is right after the stack allocated variable. Note that the shadow region is mostly unpoisoned and addressable. This means that only bad accesses to memory close to the variable are detected by ASan. If I change line 3 to `arr[30] = 1;`, then ASan does not detect the bug on my system.
+
+Note that in idiomatic D code one would use a slice instead of a pointer, and D's boundschecking would catch the bug:
+```c++
+void foo(int[] arr) {
+    arr[10] = 1; // Boom! Caught by D's boundschecking. ASan not needed.
+}
+
+void main() {
+    int[10] tenIntegers;
+    foo(tenIntegers);
+}
+```
 
 # Bug in LDC's druntime
 
@@ -209,7 +221,7 @@ We will need to study this much more, and in the future LDC will likely ship wit
 
 # Future work: detecting stack use after return
 
-D's `@safe` attribute should prevent the code from doing any memory unsafe operations. In functions marked with `@safe`, a number of dangerous [operations are forbidden by the compiler](https://dlang.org/spec/function.html#safe-functions). The static checking is not airtight just yet, and sometimes people find unsafe operations still possible in `@safe` code, as discussed [in a forum post last August](https://forum.dlang.org/post/kfdekipdbxnrawzfczva@forum.dlang.org):
+D's [`@safe`](https://dlang.org/spec/function.html#safe-functions) attribute (together with [`-dip1000`](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md)) prevent code from doing any memory unsafe operations. Returning a reference to a local stack variable from an `@safe` function is rejected by the compiler, but there are corner cases where it is still possible to do so, as discussed [in a forum post last August](https://forum.dlang.org/post/kfdekipdbxnrawzfczva@forum.dlang.org). Here is the contrived example demonstrating the bug:
 
 ```c++
 class A {
@@ -232,7 +244,7 @@ void main() @safe {
 }
 ```
 
-If you don't see the bug yet, don't despair. ASan will find it for us.
+Note that the compiler should have caught this bug (at compile time!), but it currently [does not](https://issues.dlang.org/show_bug.cgi?id=18128). Regardless, ASan will find these kind of bugs for us too.
 
 We can pass [extra run-time flags to ASan](https://github.com/google/sanitizers/wiki/AddressSanitizerFlags) by setting the `ASAN_OPTIONS` environment variable. There are a number of interesting options, but here I'll only show what setting `detect_stack_use_after_return` does.
 Let's also pipe the output through `ddemangle` so we get human-readable D function names.
@@ -269,6 +281,8 @@ Clearly, this is a major missing part of ASan for D.
 What must be implemented in druntime is the poisoning of the GC pool memory, and only unpoisoning the parts that have been given to user code (and poisoning it again after it is no longer used and has been collected).
 
 # Closing remarks
+
+The memory-bug situation in D isn't nearly as bad as in C++, for example because of garbage collection, array slices, and `@safe`. The fact that the examples I use are either non-idiomatic D code or compiler bugs should strengthen your belief that D really is a much safer language than C++. However in practice, not all D code uses `@safe` and [DIP1000](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md), and developers keep using pointers more often than they should, and so the risk of memory bugs remains. Using ASan should be part of your testing _in addition to_ using the memory safety features already present in D.
 
 I hope that this article helps you in using ASan in your projects. Compiling with ASan enabled is the same as with Clang and GCC: `-fsanitize=address`, simple!
 
