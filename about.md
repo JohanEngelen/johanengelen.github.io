@@ -11,7 +11,7 @@ Since 2015, he switched from Inkscape development to contributing to [the LDC pr
 
 Johan has a PhD in Electrical Engineering from the [University of Twente](https://www.utwente.nl) in the Netherlands (2011). His [PhD topic](https://dx.doi.org/10.3990/1.9789036531207) was microelectromechanical actuators (the inverse of the accelerometer in your mobile device) for probe-based data storage. You can also [make music](https://www.engadget.com/2010/10/04/worlds-smallest-violin-uses-mems-plays-only-for-you-video/) with them.
 He worked on the [physical](https://www.flickr.com/photos/ibm_research_zurich/19337989589) [aspects](https://www.flickr.com/photos/ibm_research_zurich/16890631949) of [magnetic tape recording](https://www-03.ibm.com/press/us/en/pressrelease/46554.wss) at [IBM Research - Zurich](https://www.research.ibm.com/labs/zurich/) from 2011 to 2015.
-In 2017, he joined the [Robotics and Mechatronics group](https://www.ram.ewi.utwente.nl) at the [University of Twente](https://www.utwente.nl), where he is currently assistent professor of Inspection Robotics.
+In 2017, he joined the [Robotics and Mechatronics group](https://www.ram.ewi.utwente.nl) at the [University of Twente](https://www.utwente.nl), where he is currently assistant professor of Inspection Robotics.
 
 [My Github account](https://github.com/JohanEngelen)
 
