@@ -12,7 +12,7 @@ LDC does not yet support ASan on Windows._
 
 [Address Sanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer) (or ASan for short) is a fast memory access error detector. When it detects that a program tries to read/write from/to an invalid memory address, it aborts the program and outputs an error report with many details about the error. To use ASan you have to compile with ASan enabled (`-fsanitize=address`) and you have to link with the ASan runtime library (again `-fsanitize=address` when linking with LDC).
 
-ASan is developed for catching bugs in C++ codebases. Although D is a much more memory-safe language, the safety measures do require some developer effort and discipline. The same type of memory bugs that happen in C++ can happen in D too. ASan to the rescue! To peak your interest, at Cppcon 2017, Louis Brandy, Engineering Director at Facebook, notes that ["AdressSanitizer is probably the most important thing that's happened, at least in our tool set, in a long time."](https://youtu.be/lkgszkPnV8g?t=409) And ["one cannot speak highly enough of AddressSanitizer, and the amount of bugs that it finds in a codebase."](https://youtu.be/lkgszkPnV8g?t=2649)
+ASan is developed for catching bugs in C++ codebases. Although D is a much more memory-safe language, the safety measures do require some developer effort and discipline. The same type of memory bugs that happen in C++ can happen in D too. ASan to the rescue! To pique your interest, at CppCon 2017, Louis Brandy, Engineering Director at Facebook, notes that ["AdressSanitizer is probably the most important thing that's happened, at least in our tool set, in a long time."](https://youtu.be/lkgszkPnV8g?t=409) And ["one cannot speak highly enough of AddressSanitizer, and the amount of bugs that it finds in a codebase."](https://youtu.be/lkgszkPnV8g?t=2649)
 
 ASan catches bad memory accesses at runtime by instrumenting[^instrum] memory accesses during compilation, where the instrumentation code checks the accessed address range against a table of accessible/inaccessible memory (stored in a "shadow" memory region). The instrumentation of code includes adding checks on every read/write from memory and adding calls to mark specific memory regions as valid ('unpoisoned') or invalid ('poisoned') for access. The instrumentation and runtime library add poisoned 'red zones' around valid memory regions (stack variables and heap), such that buffer over-/underflow can be detected. The ASan runtime library provides the memory marking/checking and error reporting functions, but also overrides `malloc` and `free` such that accesses to dynamically allocated memory regions can also be checked for validity. With this mechanism, ASan detects for example use-after-free bugs and heap buffer overflows.
 
@@ -115,7 +115,7 @@ void main() {
 # Bug in LDC's druntime
 
 Let's look at a [bug in LDC's druntime](https://issues.dlang.org/show_bug.cgi?id=17821), prior to version 1.4.0, that would have been easily found with ASan.
-The bug was [reported by Eyal from Weka.io](https://issues.dlang.org/show_bug.cgi?id=17821), and I fear it cost him a lot of time to figure out what was broken: `core.atomic.atomicStore` would do a stack overread when passed an `ulong` (8 bytes) and an `int` (4 bytes), resulting in `atomicStore` writing garbage to one half of the `ulong`. Calling `atomicStore` with `ulong` and `int` may happen quite easily, as you can see in this small code fragment:
+The bug was [reported by Eyal from Weka.io](https://issues.dlang.org/show_bug.cgi?id=17821), and I fear it cost him a lot of time to figure out what was broken: `core.atomic.atomicStore` would do a stack overread when passed a `ulong` (8 bytes) and an `int` (4 bytes), resulting in `atomicStore` writing garbage to one half of the `ulong`. Calling `atomicStore` with `ulong` and `int` may happen quite easily, as you can see in this code fragment:
 
 ```c++
 // File: asan_2.d
@@ -136,7 +136,7 @@ READ of size 8 at 0x7fff57a13360 thread T0
     #0 0x1081ece5b in _Dmain atomic.d:389
 ```
 
-The ASan output is harder to correlate with the source code because the call to `core.atomic.atomicStore` is inlined even at `-O0` because of `pragma(inline, true)`. I'm on OSX, so I need to run `dsymutil` on the `asan_2` binary first. Then after adding `llvm-symbolizer` to the path, I get a better stack trace that does show `_Dmain` calling `core.atomic.atomicStore`:
+In this case the ASan output is harder to correlate with the source code because the call to `core.atomic.atomicStore` is inlined even at `-O0` because of `pragma(inline, true)`. I'm on OSX, so I need to run `dsymutil` on the `asan_2` binary first. Then after adding `llvm-symbolizer` to the path, I get a better stack trace that does show `_Dmain` calling `core.atomic.atomicStore`:
 
 ```
 =================================================================
@@ -172,11 +172,11 @@ Shadow bytes around the buggy address:
 
 The output nicely shows that at the address accessed (look for the `[ ]` brackets), only 4 bytes are addressible instead of the 8-byte read attempt. The [bug fix](https://github.com/ldc-developers/druntime/pull/102) is in LDC 1.4.0, so you won't be able to reproduce it anymore with the `asan_2.d` code ;-)
 
-The lesson is clear: we should start running the Phobos and druntime testsuites with ASan enabled as soon as possible!
+The lesson is clear: we should start running Phobos and druntime testsuites with ASan enabled as soon as possible!
 
 # Blacklisting
 
-Some code will need to access memory regions that are protected by ASan. For example, stack tracing code necessarily reads beyond the limits of user variables. Without special precautions, such stack tracing code would trigger an ASan stack-buffer-overflow error. Notably, the standard libraries contain such code. We do need to ASan instrument the standard library however, to find bugs with incorrect usage of (or bugs inside) the standard library. For such purpose, we can specify a blacklist and functions that match the blacklist will not be instrumented.
+Some code will need to access memory regions that are protected by ASan. For example, stack tracing code necessarily reads beyond the limits of user variables. Without special precautions, such stack tracing code would trigger an ASan stack-buffer-overflow error. Notably, the standard libraries contain such code. We do need to ASan instrument the standard library however, to find bugs with incorrect usage of (or bugs inside) the standard library. For such purpose, we can specify a blacklist such that functions that match the blacklist will not be instrumented.
 
 To specify which functions should not be instrumented by ASan, use the `-fsanitize-blacklist=<filename>` compiler flag. An example of such a blacklist file:
 
@@ -203,14 +203,14 @@ fun:_D*getcacheinfoCPUID2*
 fun:*12conservative2gc*
 ```
 
-In this `asan_blacklist.txt` file, I've disabled instrumentation of a few functions that are in druntime and Phobos, such that ASan doesn't trigger on the "invalid" memory operations performed by that code. Note: some function that match this blacklist may really be buggy!
-We can use the [`ldc-build-runtime` tool](https://wiki.dlang.org/Building_LDC_runtime_libraries) to build druntime and Phobos standard library with ASan enabled and with this blacklist:
+In this `asan_blacklist.txt` file, I've disabled instrumentation of a few functions that are in druntime and Phobos, such that ASan doesn't trigger on the "invalid" memory operations performed by that code. Note: some functions that match this blacklist may really be buggy!
+We can use the [`ldc-build-runtime` tool](https://wiki.dlang.org/Building_LDC_runtime_libraries) to build ASan-enabled druntime and Phobos standard libraries with this blacklist:
 
 ```bash
 > ./ldc-build-runtime --dFlags='-fsanitize=address;-fsanitize-blacklist=asan_blacklist.txt' BUILD_SHARED_LIBS=OFF
 ```
 
-Now for running the Phobos and druntime testsuites, we need to explicitly specify the asan library for the linker too (I've intentionally retained the absolute paths of my system):
+Now for running the Phobos and druntime testsuites, we need to explicitly specify the ASan library for the linker too (I've intentionally retained the absolute paths of my system):
 
 ```bash
 > ./bin/ldc-build-runtime --dFlags='-fsanitize=address;-fsanitize-blacklist=/Users/johan/ldc/ldc2-1.7.0-beta1-osx-x86_64/asan_blacklist.txt' BUILD_SHARED_LIBS=OFF --testrunners --linkerFlags='/Users/johan/ldc/ldc2-1.7.0-beta1-osx-x86_64/lib/libldc_rt.asan_osx_dynamic.dylib'
@@ -221,7 +221,7 @@ We will need to study this much more, and in the future LDC will likely ship wit
 
 # Future work: detecting stack use after return
 
-D's [`@safe`](https://dlang.org/spec/function.html#safe-functions) attribute (together with [`-dip1000`](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md)) prevent code from doing any memory unsafe operations. Returning a reference to a local stack variable from an `@safe` function is rejected by the compiler, but there are corner cases where it is still possible to do so, as discussed [in a forum post last August](https://forum.dlang.org/post/kfdekipdbxnrawzfczva@forum.dlang.org). Here is the contrived example demonstrating the bug:
+D's [`@safe`](https://dlang.org/spec/function.html#safe-functions) attribute (together with [`-dip1000`](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md)) prevents code from doing any memory unsafe operations. Returning a reference to a local stack variable from an `@safe` function is rejected by the compiler, but there are corner cases where it is still possible to do so, as discussed [in a forum post last August](https://forum.dlang.org/post/kfdekipdbxnrawzfczva@forum.dlang.org). Here is a contrived example demonstrating the bug:
 
 ```c++
 class A {
@@ -271,7 +271,7 @@ Address 0x000104929050 is located in stack of thread T0 at offset 80 in frame
 
 **Big caveat**: [ASan's stack-use-after-return detection](https://github.com/google/sanitizers/wiki/AddressSanitizerUseAfterReturn) works by allocating stack variables on the heap using malloc, but that memory is not (yet) registered with the garbage collector (GC). This means that the GC no longer sees stack allocated pointers, and will incorrectly collect memory if it is only pointed to by stack pointers... Very bad! So although this example here worked, for larger programs things will definitely _not_ work well. Further work is needed to have the instrumentation code add the dynamically allocated stack to the list of GC-scanned memory ranges [^llvmpass].
 
-[^llvmpass]: It's a work in progress. A glimpse: I am adding an LDC LLVM pass right after the ASan pass, that adds calls to `GC.addRange` and `GC.removeRange` right after `__asan_stack_malloc` and `__asan_stack_free`, respectively. But instead of a call to `__asan_stack_free`, sometimes LLVM directly emits the equivalent of the inlined call. In that case, my pass doesn't know where to add `GC.removeRange` and things become very complicated. I'll have to extend LLVM to add calls to optional user-defined functions after `__asan_stack_malloc` and `__asan_stack_free`. Work in progress...!
+[^llvmpass]: It's a work in progress. A glimpse: I am adding an LDC LLVM pass right after the ASan pass, that adds calls to `GC.addRange` and `GC.removeRange` right after `__asan_stack_malloc` and `__asan_stack_free`, respectively. But instead of a call to `__asan_stack_free`, sometimes LLVM directly emits the equivalent of the inlined call. In that case, my pass doesn't know where to add `GC.removeRange` and things become very complicated. I'll have to extend LLVM to add calls to optional user-defined functions after `__asan_stack_malloc` and `__asan_stack_free`. Work in progress...
 
 # Future work: memory allocated by the garbage collector (GC)
 
@@ -282,7 +282,7 @@ What must be implemented in druntime is the poisoning of the GC pool memory, and
 
 # Closing remarks
 
-The memory-bug situation in D isn't nearly as bad as in C++, for example because of garbage collection, array slices, and `@safe`. The fact that the examples I use are either non-idiomatic D code or compiler bugs should strengthen your belief that D really is a much safer language than C++. However in practice, not all D code uses `@safe` and [DIP1000](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md), and developers keep using pointers more often than they should, and so the risk of memory bugs remains. Using ASan should be part of your testing _in addition to_ using the memory safety features already present in D.
+The memory-bug situation in D isn't nearly as bad as in C++ partly because of garbage collection, array slices, and `@safe`. The fact that the examples I use are either non-idiomatic D code or compiler bugs should strengthen your belief that D really is a much safer language than C++. However in practice, not all D code uses `@safe` and [DIP1000](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md), and developers keep using pointers more often than they should, and so the risk of memory bugs remains. Using ASan should be part of your testing _in addition to_ using the memory safety features already present in D.
 
 I hope that this article helps you in using ASan in your projects. Compiling with ASan enabled is the same as with Clang and GCC: `-fsanitize=address`, simple!
 
@@ -293,7 +293,7 @@ If you have any issues in using ASan with LDC, report them in [LDC's bugtracker]
 
 # Acknowledgments
 
-I'd like to thank the guys at [Weka.io](https://weka.io), who own the world's most awesome D codebase, and who partly sponsor my work on LDC.
+I'd like to thank the folks at [Weka.io](https://weka.io), who own the world's most awesome D codebase, and who partly sponsor my work on LDC.
 
 # Feedback
 
