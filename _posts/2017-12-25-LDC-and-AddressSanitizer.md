@@ -190,9 +190,6 @@ To specify which functions should not be instrumented by ASan, use the `-fsaniti
 # Example usage:
 # fun:*bad_function_name*
 # src:file_with_tricky_code.cc
-# global:*global_with_bad_access_or_initialization*
-# global:*global_with_initialization_issues*=init
-# type:*Namespace::ClassName*=init
 
 # Blacklist druntime functions whose inline assembly does not sit well with
 # ASan yet, see https://github.com/ldc-developers/ldc/issues/2257
@@ -201,6 +198,7 @@ fun:_D*getcacheinfoCPUID2*
 
 # Functions from the conservative gc druntime
 fun:*12conservative2gc*
+fun:_D4core5cpuid*
 ```
 
 In this `asan_blacklist.txt` file, I've disabled instrumentation of a few functions that are in druntime and Phobos, such that ASan doesn't trigger on the "invalid" memory operations performed by that code. Note: some functions that match this blacklist may really be buggy!
