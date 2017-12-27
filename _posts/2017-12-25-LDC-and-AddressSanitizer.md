@@ -215,6 +215,8 @@ Now for running the Phobos and druntime testsuites, we need to explicitly specif
 ```
 
 We will need to study this much more, and in the future LDC will likely ship with an ASan blacklist for Phobos and druntime.
+The blacklist given above is a good starting point, but building ASan-enabled standard libraries is at an early stage and some real effort is still needed to make it work.
+But it is not at all necessary to use an ASan-enabled standard library right now. Without ASan-enabled standard libs, ASan testing will still cover your code and (a lot of) standard library _templated_ code. If you want to try ASan out on your own code, you can start by ignoring the D standard libraries.
 
 
 # Future work: detecting stack use after return
