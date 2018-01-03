@@ -38,12 +38,14 @@ void main() {
 }
 ```
 
-Let's look at the runtime output of this small buggy program `asan_1.d`. We build with `-fsanitize=address` and then run the program:
+Let's look at the runtime output of this small buggy program `asan_1.d`. We build with `-fsanitize=address -g -disable-fp-elim`[^flags] and then run the program:
 
 ```shell
-> ldc2 -fsanitize=address -g asan_1.d
+> ldc2 -fsanitize=address -g -disable-fp-elim asan_1.d
 > ./asan_1
 ```
+
+[^flags]: Currently, LDC [eliminates the frame pointer even at `-O0`](https://github.com/ldc-developers/ldc/issues/2480) which prevents ASan from showing full stack traces. I'm on macOS, and need to add `-disable-fp-elim` to get full traces, don't know whether it's needed on other OSses.
 
 This outputs[^colors]:
 
@@ -51,14 +53,16 @@ This outputs[^colors]:
 
 ```
 =================================================================
-==15099==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fff5dfce3a8 at pc 0x000101c31b97 bp 0x7fff5dfce330 sp 0x7fff5dfce328
-WRITE of size 4 at 0x7fff5dfce3a8 thread T0
-    #0 0x101c31b96 in _D6asan_13fooFPiZv asan_1.d:3
-    #1 0x101d6238e in _D2rt6dmain211_d_run_mainUiPPaPUAAaZiZ6runAllMFZ9__lambda1MFZv (asan_1:x86_64+0x10013138e)
-    #2 0x101c31df4 in main __entrypoint.d:8
+==25860==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7ffee599f4c8 at pc 0x00010a261704 bp 0x7ffee599f440 sp 0x7ffee599f438
+WRITE of size 4 at 0x7ffee599f4c8 thread T0
+    #0 0x10a261703 in _D6asan_13fooFPiZv asan_1.d:3
+    #1 0x10a2617fe in _Dmain asan_1.d:8
+    #2 0x10a28b81e in _D2rt6dmain211_d_run_mainUiPPaPUAAaZiZ6runAllMFZ9__lambda1MFZv (asan_1:x86_64+0x10002b81e)
+    #3 0x10a261964 in main __entrypoint.d:8
+    #4 0x7fff79b49114 in start (libdyld.dylib:x86_64+0x1114)
 
-Address 0x7fff5dfce3a8 is located in stack of thread T0 at offset 72 in frame
-    #0 0x101c31bbf in _Dmain asan_1.d:6
+Address 0x7ffee599f4c8 is located in stack of thread T0 at offset 72 in frame
+    #0 0x10a26172f in _Dmain asan_1.d:6
 
   This frame has 1 object(s):
     [32, 72) '' <== Memory access at offset 72 overflows this variable
@@ -66,27 +70,27 @@ HINT: this may be a false positive if your program uses some custom stack unwind
       (longjmp and C++ exceptions *are* supported)
 SUMMARY: AddressSanitizer: stack-buffer-overflow asan_1.d:3 in _D6asan_13fooFPiZv
 Shadow bytes around the buggy address:
-  0x1fffebbf9c20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9c30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9c40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9c50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9c60: 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
-=>0x1fffebbf9c70: 00 00 00 00 00[f3]f3 f3 f3 f3 f3 f3 00 00 00 00
-  0x1fffebbf9c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9c90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9ca0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9cb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  0x1fffebbf9cc0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33e40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33e50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33e60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33e70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x1fffdcb33e90: f1 f1 f1 f1 00 00 00 00 00[f3]f3 f3 f3 f3 f3 f3
+  0x1fffdcb33ea0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33eb0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33ec0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33ed0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1fffdcb33ee0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 Shadow byte legend (one shadow byte represents 8 application bytes):
   Addressable:           00
-  Partially addressable: 01 02 03 04 05 06 07
+  Partially addressable: 01 02 03 04 05 06 07 
   Heap left redzone:       fa
   Freed heap region:       fd
   Stack left redzone:      f1
   Stack mid redzone:       f2
   Stack right redzone:     f3
 ...
-==15099==ABORTING
+==25860==ABORTING
 ```
 
 The program aborts because ASan has intercepted a bad memory access: a `stack-buffer-overflow` due to a `WRITE of size 4` (bytes) at program location `0x101c31b96 in _D6asan_13fooFPiZv asan_1.d:3`. File `asan_1.d` line 3 is the line with `// BOOM !!!`. So not only did ASan detect a bug, it immediately shows us where the bug happens. ASan also reports in which stack frame the bad memory address lies (`_Dmain asan_1.d:6`) and it tells us which variable is close to that address:
