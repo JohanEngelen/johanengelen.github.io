@@ -28,7 +28,7 @@ Let's look at a basic math function and see how we can improve the compiler-gene
 
 The following code calculates the [dot-product](https://en.wikipedia.org/wiki/Dot_product) of two vectors of arbitrary length:
 
-```cpp
+```d
 double dot(double[] a, double[] b) {
     double s = 0;
     foreach (size_t i; 0 .. a.length) {
@@ -96,7 +96,7 @@ One performance improvement is to allow the compiler to 'fuse' `a*b+c` into one 
 
 We can instruct LLVM to allow "unsafe-fp-math" transformations such as FMA using the LDC attribute [`@llvmAttr("unsafe-fp-math", "true")`](https://wiki.dlang.org/LDC-specific_language_changes#.40.28ldc.attributes.llvmAttr.28.22key.22.2C_.22value.22.29.29) (you're not recommended to use this low-level attribute, please read on).
 
-```cpp
+```d
 import ldc.attributes : llvmAttr;
 @llvmAttr("unsafe-fp-math", "true")
 double dot(double[] a, double[] b) {
@@ -129,7 +129,7 @@ I recommend the usage of `@fastmath` instead of the other two low-level attribut
 
 With `@fastmath` the result becomes:
 
-```cpp
+```d
 import ldc.attributes : fastmath;
 @fastmath
 double dot(double[] a, double[] b) {

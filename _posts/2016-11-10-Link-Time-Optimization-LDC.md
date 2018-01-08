@@ -34,13 +34,13 @@ gold: `ldc2 -L-plugin-opt=cache-dir=/path/to/cache ...`
 
 Consider the following example, where code is spread across two files, `lto_a.d` and `lto_b.d`:
 
-```cpp
+```d
 // File lto_b.d
 // `extern(C++)` is used to be able to define it in C++ later.
 extern(C++) void doesNothing() {}
 ```
 
-```cpp
+```d
 // File lto_a.d
 extern(C++) void doesNothing(); // Note: declaration only
 

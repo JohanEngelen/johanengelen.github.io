@@ -46,7 +46,7 @@ What makes indirect calls "slower" than direct calls is the extra indirection: t
 
 The presentation that got me started on this topic is ["Profile-based Indirect Call Promotion" by Ivan Baev](http://llvm.org/devmtg/2015-10/slides/Baev-IndirectCallPromotion.pdf). The ICP optimization is transforming this code fragment
 
-```cpp
+```d
 // An unknown function address is loaded into fptr, ...
 void function() fptr = get_function_ptr();
 // ... and is called
@@ -55,7 +55,7 @@ fptr();
 
 to this:
 
-```cpp
+```d
 void function() fptr = get_function_ptr();
 // We check if the address is the address of void likely_function().
 if (fptr == &likely_function)
@@ -66,7 +66,7 @@ else
 
 Note that you can manually transform code to a functionpointer comparison + direct call and you will get the same machine code _without_ the need for profiling. If you have a good hunch about what the function pointer could point to, you can rewrite your code like this and you'll perhaps get a performance improvement. With a helper template function it's easy to do so:
 
-```cpp
+```d
 auto is_likely(alias Likely, Fptr, Args...)(Fptr fptr, Args args) {
     return (fptr == &Likely) ? Likely(args) : fptr(args);
 }
@@ -81,7 +81,7 @@ I recommend taking a look at the generated LLVM IR (`ldc2 -output-ll ...`) and s
 
 In the compile pass that adds instrumentation (`ldc2 -fprofile-instr-generate -fprofile-indirect-calls`), code like this
 
-```cpp
+```d
 void somefunction() {
     fptr(); // typeof(fptr) = void function()
 }
@@ -89,7 +89,7 @@ void somefunction() {
 
 is transformed to (somewhat simplified)
 
-```cpp
+```d
 void somefunction() {
     increment_counter(&__profc_somefunction, 0);
     __llvm_profile_instrument_target(fptr, &__profd_somefunction, 0);
@@ -128,7 +128,7 @@ Like the three indirect calls in `checkAccess(AggregateDeclaration*, Loc, Scope*
 
 What I've been working on is going one step further than ICP in LDC: promote a virtual call to a direct call. In addition to profiling the function call address, we can also profile the object's [vtable](https://en.wikipedia.org/wiki/Virtual_method_table) address to promote vtable lookups to direct function calls. This eliminates _two_ indirections: object to vtable to function pointer. Consider the following code:
 
-```cpp
+```d
 class A {
     int foo(int a) {
         return a * 2;
@@ -144,7 +144,7 @@ void somefunction(A a) {
 
 Because `somefunction` must work for `a`'s of type `A` and for `a`'s of types derived from `A`, the virtual call to `foo` is 'lowered' by the compiler into this pseudo code:
 
-```cpp
+```d
 void somefunction(A a) {
     // ...
     auto vtable = a.__vptr; // (a is actually a pointer: 0th indirection)
@@ -156,7 +156,7 @@ void somefunction(A a) {
 
 When the profile data indicates that `somefunction` is usually called with an object of exactly type `B` (derived from `A`) we can optimize the code to this[^mutabletypeid]:
 
-```cpp
+```d
 void somefunction(A a) {
     // ...
     auto b =
@@ -178,7 +178,7 @@ The code is transformed into a comparison of object `a`'s vtable pointer with th
 
 The instrumentation of a virtual call is similar to that of an indirect call. The instrumented version (`ldc2 -fprofile-instr-generate -fprofile-virtual-calls`) of the virtual call pseudo-code is:
 
-```cpp
+```d
 void somefunction(A a) {
     // ...
     auto vtable = a.__vptr; // (a is actually a pointer: 0th indirection)
@@ -273,7 +273,7 @@ Some fun implementation hurdles:
 # ICP and VCP interaction
 Depending on class hierarchy, different vtables may refer to the same function.
 
-```cpp
+```d
 class B : A {
     override int foo(int a) {
         return a + 1;

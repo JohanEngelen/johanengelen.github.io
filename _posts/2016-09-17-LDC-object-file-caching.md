@@ -58,7 +58,7 @@ You can use the same cache for all your projects; and that you can share the cac
 However, finding a hash _difference_ for two LDC invocations with _the same_ object file output is not hard.
 This D code does the trick:
 
-```cpp
+```d
 version (FIRST)
 {
     int foo(int a)
@@ -83,7 +83,7 @@ So now, I again challenge you: find two pieces of code that result in identical 
 
 Oh wait...
 
-```cpp
+```d
 version (FIRST)
 {
     void foo();

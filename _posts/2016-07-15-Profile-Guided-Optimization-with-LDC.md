@@ -35,7 +35,7 @@ Often, a single run of your program is not enough to create a statistically repr
 
 The `ldc-profdata` tool (a renamed version of [`llvm-profdata`](http://llvm.org/docs/CommandGuide/llvm-profdata.html) that matches the LLVM version that `ldc2` was built with) can be used to inspect the contents of profile data files. Let's look at the profile of this program:
 
-```cpp
+```d
 extern(C)
 void foo(int x) {
     if (x > 0) {
@@ -77,7 +77,7 @@ The profile data file contains a data structure with counters and other informat
 LDC can reuse profile data obtained with an older version of your program.
 To enable profile re-use even if the source code has changed a little, a hash of the function control flow is stored in the profile. In the `-fprofile-instr-use` compile step, LDC ensures that the function hash in the profile is equal to the hash of the code being compiled. If there is no match, LDC simply ignores profile data for that function. The hash is not perfect: different pieces of code result in the same hash, thus a profile obtained with an older version of the code may be applied to the new code. An example:
 
-```cpp
+```d
 void foo(int x) {
     if (x > 0) { // 1000x true, 4x false
         // ...
@@ -86,7 +86,7 @@ void foo(int x) {
 ```
 The function `foo` is almost always called with positive `x`, and the profile data for the `if` statement is "branch taken 1000 times, not taken 4 times". If the code is now changed from `x > 0` to `x < 0`, the function hash stays the same (current LDC behavior) and old profile data will wrongly be used.
 
-```cpp
+```d
 void foo(int x) {
     if (x < 0) { // With old data: 1000x true, 4x false. Oops!
         // ...
@@ -102,7 +102,7 @@ No need for distress: PGO does not change the semantics of D, it is merely an op
 The `ldc.profile` module contains functions to interface with the profile instrumentation. I think the only really useful function is `resetAll()`. The functionality exposed by the other `ldc.profile` functions is very low-level and may become unavailable with future compiler/LLVM versions.
 `resetAll()` resets all profiling information and can be used to remove your program's start-up behavior from the profile:
 
-```cpp
+```d
 import ldc.profile : resetAll;
 void main()
 {
@@ -120,7 +120,7 @@ This way, PGO will optimize the program for best performance of `operate()`, pos
 
 The profiling implementation works on a per-function basis, and it is therefore straightforward to turn instrumentation on/off for specific functions with the new `pragma(LDC_profile_instr, {true|false})`. The pragma has the same semantics as `pragma(inline,...)`.
 
-```cpp
+```d
 void instrumented() {}
 void not_instrumented() {
     pragma(LDC_profile_instr, false);
