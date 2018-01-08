@@ -26,7 +26,7 @@ Bugs involving GC allocated memory are not detected (yet!). I'll return to this 
 
 A contrived example of a bug easily caught with ASan:
 
-```c++
+```d
 // File: asan_1.d
 void foo(int* arr) {
     arr[10] = 1; // BOOM !!!
@@ -105,7 +105,7 @@ What's not working yet is showing the name of that variable: it should say `[32,
 What follows is a view of the shadow memory around the accessed memory address indicated between `[` `]`. The value `f3` means that the accessed location is in the 'stack right redzone', i.e. the address is right after the stack allocated variable. Note that the shadow region is mostly unpoisoned and addressable. This means that only bad accesses to memory close to the variable are detected by ASan. If I change line 3 to `arr[30] = 1;`, then ASan does not detect the bug on my system.
 
 Note that in idiomatic D code one would use a slice instead of a pointer, and D's boundschecking would catch the bug:
-```c++
+```d
 void foo(int[] arr) {
     arr[10] = 1; // Boom! Caught by D's boundschecking. ASan not needed.
 }
@@ -121,7 +121,7 @@ void main() {
 Let's look at a [bug in LDC's druntime](https://issues.dlang.org/show_bug.cgi?id=17821), prior to version 1.4.0, that would have been easily found with ASan.
 The bug was [reported by Eyal from Weka.io](https://issues.dlang.org/show_bug.cgi?id=17821), and I fear it cost him a lot of time to figure out what was broken: `core.atomic.atomicStore` would do a stack overread when passed a `ulong` (8 bytes) and an `int` (4 bytes), resulting in `atomicStore` writing garbage to one half of the `ulong`. Calling `atomicStore` with `ulong` and `int` may happen quite easily, as you can see in this code fragment:
 
-```c++
+```d
 // File: asan_2.d
 import core.atomic : atomicStore;
 void main() {
@@ -227,7 +227,7 @@ But it is not at all necessary to use an ASan-enabled standard library right now
 
 D's [`@safe`](https://dlang.org/spec/function.html#safe-functions) attribute (together with [`-dip1000`](https://github.com/dlang/DIPs/blob/master/DIPs/DIP1000.md)) prevents code from doing any memory unsafe operations. Returning a reference to a local stack variable from an `@safe` function is rejected by the compiler, but there are corner cases where it is still possible to do so, as discussed [in a forum post last August](https://forum.dlang.org/post/kfdekipdbxnrawzfczva@forum.dlang.org). Here is a contrived example demonstrating the bug:
 
-```c++
+```d
 class A {
     int i;
 }
