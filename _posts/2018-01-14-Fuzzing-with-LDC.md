@@ -395,6 +395,13 @@ We can improve user-friendliness, by allowing the user to override a D-style fun
 
 Meanwhile, we can of course expect libFuzzer to become better and better. There are some [cool ideas](https://guidovranken.wordpress.com/2017/07/08/libfuzzer-gv-new-techniques-for-dramatically-faster-fuzzing/) out there.
 
+# Extra links
+
+* [CppCon 2017: Kostya Serebryany “Fuzz or lose! Why and how to make fuzzing a standard practice for C++”](https://www.youtube.com/watch?v=k-Cv8Q3zWNQ)
+* [Repository for materials of "Modern fuzzing of C/C++ Projects" workshop](https://github.com/Dor1s/libfuzzer-workshop)
+* [OSS-Fuzz - Continuous Fuzzing for Open Source Software](https://github.com/google/oss-fuzz)
+* [Super Awesome Fuzzing, Part One -- An informative guide on using AFL and libFuzzer](https://labsblog.f-secure.com/2017/06/22/super-awesome-fuzzing-part-one/)
+
 # Feedback
 
 Constructive feedback, positive and negative, is always appreciated. The best way to get in touch with me and the other LDC developers is via the [digitalmars.D.ldc forum](https://forum.dlang.org/group/digitalmars.D.ldc) and our [Gitter chat](https://gitter.im/ldc-developers/main).
