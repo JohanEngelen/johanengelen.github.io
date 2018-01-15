@@ -271,8 +271,8 @@ int LLVMFuzzerTestOneInput(const(ubyte[]) data)
         // Make a DOM tree
         scope auto doc = new std.xml.Document(str);
     }
-    catch (Throwable e) {
-        // `Throwable`s thrown are not bugs (in contrast to `Errors`).
+    catch (Exception e) {
+        // `Exception`s thrown are not bugs (in contrast to `Errors`).
     }
 
     return 0;
